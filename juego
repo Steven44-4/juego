@@ -1,0 +1,191 @@
+import random
+import time  # Para añadir pausas y hacer la interfaz más legible
+
+class Personaje:
+    def __init__(self, nombre, vida, ataque, defensa):
+        self._nombre = nombre
+        self._vida = self._validar_vida(vida)
+        self._ataque = ataque
+        self._defensa = defensa
+
+    def _validar_vida(self, vida):
+        if 0 <= vida <= 120:  # Aceptar hasta 120 porque el berserker tiene 120
+            return vida
+        else:
+            raise ValueError("La vida debe estar entre 0 y 120.")
+
+    # Getters
+    def get_nombre(self):
+        return self._nombre
+
+    def get_vida(self):
+        return self._vida
+
+    def get_ataque(self):
+        return self._ataque
+
+    def get_defensa(self):
+        return self._defensa
+
+    # Setters
+    def set_vida(self, vida):
+        self._vida = self._validar_vida(vida)
+
+    def atacar(self, objetivo):
+        dano = max(0, self._ataque - objetivo.get_defensa())
+        objetivo.set_vida(max(0, objetivo.get_vida() - dano))
+        print(f"{self._nombre} ataca a {objetivo.get_nombre()} y le inflige {dano} puntos de daño.")
+        if objetivo.get_vida() <= 0:
+            print(f"¡{objetivo.get_nombre()} ha sido derrotado!")
+
+class Guerrero(Personaje):
+    def __init__(self, nombre, vida, ataque, defensa):
+        super().__init__(nombre, vida, ataque, defensa)
+        self.habilidad_especial = "Golpe Poderoso"
+
+    def atacar(self, objetivo):
+        dano_base = self._ataque
+        dano_incrementado = int(dano_base * 1.20)
+        dano_total = max(0, dano_incrementado - objetivo.get_defensa())
+        objetivo.set_vida(max(0, objetivo.get_vida() - dano_total))
+        print(f"¡{self._nombre}, el valiente Guerrero, usa su '{self.habilidad_especial}' e inflige {dano_total} puntos de daño!")
+        if objetivo.get_vida() <= 0:
+            print(f"¡{objetivo.get_nombre()} cae ante la fuerza del Guerrero!")
+
+class Mago(Personaje):
+    def __init__(self, nombre, vida, ataque, defensa):
+        super().__init__(nombre, vida, ataque, defensa)
+        self.habilidad_especial = "Descarga Arcana"
+        self.mana = 100
+
+    def get_mana(self):
+        return self.mana
+
+    def set_mana(self, mana):
+        self.mana = max(0, min(100, mana))
+
+    def atacar(self, objetivo):
+        if self.mana >= 20:
+            dano = self._ataque
+            objetivo.set_vida(max(0, objetivo.get_vida() - dano))
+            self.set_mana(self.mana - 20)
+            print(f"¡{self._nombre}, el misterioso Mago, lanza '{self.habilidad_especial}' infligiendo {dano} puntos de daño mágico! (Maná restante: {self.mana})")
+            if objetivo.get_vida() <= 0:
+                print(f"¡{objetivo.get_nombre()} se desvanece bajo el poder arcano!")
+        else:
+            print(f"{self._nombre} no tiene suficiente maná. Realiza un ataque básico.")
+            super().atacar(objetivo)
+
+class Arquero(Personaje):
+    def __init__(self, nombre, vida, ataque, defensa):
+        super().__init__(nombre, vida, ataque, defensa)
+        self.habilidad_especial = "Flecha Certera"
+
+    def atacar(self, objetivo):
+        dano = self._ataque
+        if self._ataque > objetivo.get_defensa():
+            dano *= 2
+            print(f"¡{self._nombre}, el ágil Arquero, dispara '{self.habilidad_especial}' infligiendo {dano} puntos de daño!")
+        else:
+            dano = max(0, self._ataque - objetivo.get_defensa())
+            print(f"{self._nombre} lanza una flecha causando {dano} puntos de daño.")
+        objetivo.set_vida(max(0, objetivo.get_vida() - dano))
+        if objetivo.get_vida() <= 0:
+            print(f"¡{objetivo.get_nombre()} sucumbe ante la puntería del Arquero!")
+
+class Berserker(Personaje):
+    def __init__(self, nombre, vida, ataque, defensa):
+        super().__init__(nombre, vida, ataque, defensa)
+        self.habilidad_especial = "Furia Berserker"
+
+    def atacar(self, objetivo):
+        vida_perdida_porcentaje = (1 - (self._vida / 120))
+        incremento_ataque = int(self._ataque * vida_perdida_porcentaje * 1.5)
+        ataque_total = self._ataque + incremento_ataque
+        reduccion_defensa = int(self._defensa * vida_perdida_porcentaje * 0.5)
+        defensa_total = max(0, self._defensa - reduccion_defensa)
+        self._defensa = defensa_total
+
+        dano = max(0, ataque_total - objetivo.get_defensa())
+        objetivo.set_vida(max(0, objetivo.get_vida() - dano))
+        print(f"¡{self._nombre} desata '{self.habilidad_especial}' aumentando su ataque a {ataque_total} e infligiendo {dano} puntos de daño!")
+        if objetivo.get_vida() <= 0:
+            print(f"¡{objetivo.get_nombre()} cae ante la furia del Berserker!")
+
+def presentacion_personaje(personaje):
+    print("-" * 30)
+    print(f"Nombre: {personaje.get_nombre()}")
+    print(f"Clase: {type(personaje).__name__}")
+    print(f"Vida: {personaje.get_vida()}")
+    print(f"Ataque: {personaje.get_ataque()}")
+    print(f"Defensa: {personaje.get_defensa()}")
+    if hasattr(personaje, 'mana'):
+        print(f"Maná: {personaje.get_mana()}")
+    if hasattr(personaje, 'habilidad_especial'):
+        print(f"Habilidad Especial: {personaje.habilidad_especial}")
+    print("-" * 30)
+    time.sleep(0.5)
+
+def encuentro(personaje1, personaje2):
+    print("\n" + "=" * 40)
+    print(f"¡Comienza el encuentro entre {personaje1.get_nombre()} y {personaje2.get_nombre()}!")
+    print("=" * 40 + "\n")
+    time.sleep(1)
+
+    presentacion_personaje(personaje1)
+    presentacion_personaje(personaje2)
+
+    turno = 0
+    while personaje1.get_vida() > 0 and personaje2.get_vida() > 0:
+        turno += 1
+        print(f"\n--- Turno {turno} ---")
+        time.sleep(0.75)
+
+        if turno % 2 != 0:
+            atacante = personaje1
+            defensor = personaje2
+        else:
+            atacante = personaje2
+            defensor = personaje1
+
+        print(f"¡{atacante.get_nombre()} se prepara para atacar!")
+        time.sleep(1)
+        atacante.atacar(defensor)
+        time.sleep(1.25)
+
+        print(f"Vida de {personaje1.get_nombre()}: {personaje1.get_vida()}")
+        print(f"Vida de {personaje2.get_nombre()}: {personaje2.get_vida()}\n")
+        time.sleep(0.5)
+
+    print("=" * 40)
+    if personaje1.get_vida() <= 0:
+        print(f"¡{personaje2.get_nombre()} ha ganado el encuentro!")
+    else:
+        print(f"¡{personaje1.get_nombre()} ha ganado el encuentro!")
+    print("=" * 40 + "\n")
+
+# --- Inicio del juego ---
+if __name__ == "__main__":
+    guerrero_valiente = Guerrero("Ragnar", 100, 30, 20)
+    mago_sabio = Mago("Merlín", 80, 40, 10)
+    arquero_veloz = Arquero("Legolas", 90, 35, 15)
+    berserker_furioso = Berserker("Krug", 120, 25, 15)
+
+    print("¡Los Guardianes del Antiguo Reino se preparan para la batalla!\n")
+    presentacion_personaje(guerrero_valiente)
+    presentacion_personaje(mago_sabio)
+    presentacion_personaje(arquero_veloz)
+    presentacion_personaje(berserker_furioso)
+    print("\n")
+    time.sleep(1)
+
+    encuentro(guerrero_valiente, mago_sabio)
+
+    guerrero_valiente.set_vida(100)
+    mago_sabio.set_vida(80)
+    if hasattr(mago_sabio, 'set_mana'):
+        mago_sabio.set_mana(100)
+
+    print("\n--- Nuevo encuentro ---")
+    time.sleep(1)
+    encuentro(arquero_veloz, berserker_furioso)
